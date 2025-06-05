@@ -1,0 +1,8 @@
+// Cria um novo nó vermelho (inserção padrão)
+Node* criarNo(int valor) {
+    Node* novo = (Node*)malloc(sizeof(Node));
+    novo->valor = valor;
+    novo->cor = VERMELHO; // novos nós são inseridos como vermelhos
+    novo->esquerda = novo->direita = novo->pai = NULL;
+    return novo;
+}
