@@ -1,0 +1,14 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Definição das cores dos nós
+typedef enum { VERMELHO, PRETO } Cor;
+
+// Estrutura de um nó da Árvore Red-Black
+typedef struct Node {
+    int valor;
+    Cor cor;
+    struct Node* esquerda;
+    struct Node* direita;
+    struct Node* pai;
+} Node;
