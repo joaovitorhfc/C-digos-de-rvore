@@ -1,0 +1,67 @@
+// Função para encontrar o menor valor na subárvore (mais à esquerda)
+Node* encontrarMinimo(Node* no) {
+    while (no->esquerda != NULL)
+        no = no->esquerda;
+    return no;
+}
+
+// Função para remover um valor da árvore AVL
+Node* remover(Node* raiz, int valor) {
+    // Caso base: árvore vazia
+    if (raiz == NULL)
+        return NULL;
+
+    // Busca recursiva do valor a ser removido
+    if (valor < raiz->valor)
+        raiz->esquerda = remover(raiz->esquerda, valor);
+    else if (valor > raiz->valor)
+        raiz->direita = remover(raiz->direita, valor);
+    else {
+        // Encontrou o nó a ser removido
+
+        // Caso com 0 ou 1 filho
+        if (raiz->esquerda == NULL || raiz->direita == NULL) {
+            Node* temp = raiz->esquerda ? raiz->esquerda : raiz->direita;
+            free(raiz); // libera o nó atual
+            return temp; // retorna o filho (ou NULL se não houver)
+        }
+
+        // Caso com 2 filhos: encontra sucessor (menor valor da subárvore direita)
+        Node* temp = encontrarMinimo(raiz->direita);
+        raiz->valor = temp->valor; // substitui valor
+        raiz->direita = remover(raiz->direita, temp->valor); // remove o sucessor
+    }
+
+    if (raiz == NULL)
+        return NULL; // árvore ficou vazia após remoção
+
+    // Atualiza altura do nó atual
+    raiz->altura = 1 + max(altura(raiz->esquerda), altura(raiz->direita));
+
+    // Calcula fator de balanceamento
+    int fb = fatorBalanceamento(raiz);
+
+    // Casos de desbalanceamento e rotações necessárias
+
+    // Esquerda-Esquerda
+    if (fb > 1 && fatorBalanceamento(raiz->esquerda) >= 0)
+        return rotacaoDireita(raiz);
+
+    // Esquerda-Direita
+    if (fb > 1 && fatorBalanceamento(raiz->esquerda) < 0) {
+        raiz->esquerda = rotacaoEsquerda(raiz->esquerda);
+        return rotacaoDireita(raiz);
+    }
+
+    // Direita-Direita
+    if (fb < -1 && fatorBalanceamento(raiz->direita) <= 0)
+        return rotacaoEsquerda(raiz);
+
+    // Direita-Esquerda
+    if (fb < -1 && fatorBalanceamento(raiz->direita) > 0) {
+        raiz->direita = rotacaoDireita(raiz->direita);
+        return rotacaoEsquerda(raiz);
+    }
+
+    return raiz; // retorna a raiz atual (balanceada)
+}
