@@ -1,0 +1,30 @@
+int main() {
+    Node* raiz = NULL;
+
+    raiz = inserir(raiz, 30);
+    raiz = inserir(raiz, 20);
+    raiz = inserir(raiz, 40);
+    raiz = inserir(raiz, 10);
+    raiz = inserir(raiz, 25);
+    raiz = inserir(raiz, 50);
+
+    printf("Árvore AVL (in-order): ");
+    exibirInOrder(raiz);
+    printf("\n");
+
+    printf("Removendo 20...\n");
+    raiz = remover(raiz, 20);
+
+    printf("Após remoção: ");
+    exibirInOrder(raiz);
+    printf("\n");
+
+    int valor = 25;
+    Node* encontrado = buscar(raiz, valor);
+    if (encontrado)
+        printf("Valor %d encontrado.\n", valor);
+    else
+        printf("Valor %d não encontrado.\n", valor);
+
+    return 0;
+}
