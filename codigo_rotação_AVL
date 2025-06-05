@@ -1,0 +1,31 @@
+// Rotação simples à direita
+// Essa operação é usada quando há um desbalanceamento à esquerda (caso Esquerda-Esquerda)
+Node* rotacaoDireita(Node* y) {
+    Node* x = y->esquerda;         // x se torna a nova raiz da subárvore
+    Node* T2 = x->direita;         // T2 será movido para a subárvore esquerda de y
+
+    x->direita = y;                // y se torna filho direito de x
+    y->esquerda = T2;              // T2 se torna filho esquerdo de y
+
+    // Atualiza alturas dos nós afetados
+    y->altura = max(altura(y->esquerda), altura(y->direita)) + 1;
+    x->altura = max(altura(x->esquerda), altura(x->direita)) + 1;
+
+    return x; // nova raiz da subárvore
+}
+
+// Rotação simples à esquerda
+// Essa operação é usada quando há um desbalanceamento à direita (caso Direita-Direita)
+Node* rotacaoEsquerda(Node* x) {
+    Node* y = x->direita;          // y se torna a nova raiz da subárvore
+    Node* T2 = y->esquerda;        // T2 será movido para a subárvore direita de x
+
+    y->esquerda = x;               // x se torna filho esquerdo de y
+    x->direita = T2;               // T2 se torna filho direito de x
+
+    // Atualiza alturas dos nós afetados
+    x->altura = max(altura(x->esquerda), altura(x->direita)) + 1;
+    y->altura = max(altura(y->esquerda), altura(y->direita)) + 1;
+
+    return y; // nova raiz da subárvore
+}
