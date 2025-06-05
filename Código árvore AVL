@@ -1,0 +1,197 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Definição do nó da árvore AVL
+typedef struct Node {
+    int valor;
+    struct Node* esquerda;
+    struct Node* direita;
+    int altura;
+} Node;
+
+// Função utilitária para obter a altura de um nó
+int altura(Node* n) {
+    if (n == NULL)
+        return 0;
+    return n->altura;
+}
+
+// Função para obter o maior entre dois valores
+int max(int a, int b) {
+    return (a > b) ? a : b;
+}
+
+// Função para criar um novo nó
+Node* criarNo(int valor) {
+    Node* novo = (Node*)malloc(sizeof(Node));
+    novo->valor = valor;
+    novo->esquerda = novo->direita = NULL;
+    novo->altura = 1;
+    return novo;
+}
+
+// Função para calcular o fator de balanceamento
+int fatorBalanceamento(Node* n) {
+    if (n == NULL) return 0;
+    return altura(n->esquerda) - altura(n->direita);
+}
+
+// Rotação simples à direita (caso Esquerda-Esquerda)
+Node* rotacaoDireita(Node* y) {
+    Node* x = y->esquerda;
+    Node* T2 = x->direita;
+
+    x->direita = y;
+    y->esquerda = T2;
+
+    y->altura = max(altura(y->esquerda), altura(y->direita)) + 1;
+    x->altura = max(altura(x->esquerda), altura(x->direita)) + 1;
+
+    return x;
+}
+
+// Rotação simples à esquerda (caso Direita-Direita)
+Node* rotacaoEsquerda(Node* x) {
+    Node* y = x->direita;
+    Node* T2 = y->esquerda;
+
+    y->esquerda = x;
+    x->direita = T2;
+
+    x->altura = max(altura(x->esquerda), altura(x->direita)) + 1;
+    y->altura = max(altura(y->esquerda), altura(y->direita)) + 1;
+
+    return y;
+}
+
+// Inserção na árvore AVL
+Node* inserir(Node* no, int valor) {
+    if (no == NULL)
+        return criarNo(valor);
+
+    if (valor < no->valor)
+        no->esquerda = inserir(no->esquerda, valor);
+    else if (valor > no->valor)
+        no->direita = inserir(no->direita, valor);
+    else
+        return no; // Duplicatas não são permitidas
+
+    no->altura = 1 + max(altura(no->esquerda), altura(no->direita));
+    int fb = fatorBalanceamento(no);
+
+    if (fb > 1 && valor < no->esquerda->valor)
+        return rotacaoDireita(no);
+    if (fb < -1 && valor > no->direita->valor)
+        return rotacaoEsquerda(no);
+    if (fb > 1 && valor > no->esquerda->valor) {
+        no->esquerda = rotacaoEsquerda(no->esquerda);
+        return rotacaoDireita(no);
+    }
+    if (fb < -1 && valor < no->direita->valor) {
+        no->direita = rotacaoDireita(no->direita);
+        return rotacaoEsquerda(no);
+    }
+
+    return no;
+}
+
+// Busca em árvore AVL
+Node* buscar(Node* raiz, int valor) {
+    if (raiz == NULL || raiz->valor == valor)
+        return raiz;
+    if (valor < raiz->valor)
+        return buscar(raiz->esquerda, valor);
+    else
+        return buscar(raiz->direita, valor);
+}
+
+// Encontrar o menor valor (mais à esquerda)
+Node* encontrarMinimo(Node* no) {
+    while (no->esquerda != NULL)
+        no = no->esquerda;
+    return no;
+}
+
+// Remoção em árvore AVL
+Node* remover(Node* raiz, int valor) {
+    if (raiz == NULL)
+        return NULL;
+
+    if (valor < raiz->valor)
+        raiz->esquerda = remover(raiz->esquerda, valor);
+    else if (valor > raiz->valor)
+        raiz->direita = remover(raiz->direita, valor);
+    else {
+        if (raiz->esquerda == NULL || raiz->direita == NULL) {
+            Node* temp = raiz->esquerda ? raiz->esquerda : raiz->direita;
+            free(raiz);
+            return temp;
+        }
+
+        Node* temp = encontrarMinimo(raiz->direita);
+        raiz->valor = temp->valor;
+        raiz->direita = remover(raiz->direita, temp->valor);
+    }
+
+    if (raiz == NULL)
+        return NULL;
+
+    raiz->altura = 1 + max(altura(raiz->esquerda), altura(raiz->direita));
+    int fb = fatorBalanceamento(raiz);
+
+    if (fb > 1 && fatorBalanceamento(raiz->esquerda) >= 0)
+        return rotacaoDireita(raiz);
+    if (fb > 1 && fatorBalanceamento(raiz->esquerda) < 0) {
+        raiz->esquerda = rotacaoEsquerda(raiz->esquerda);
+        return rotacaoDireita(raiz);
+    }
+    if (fb < -1 && fatorBalanceamento(raiz->direita) <= 0)
+        return rotacaoEsquerda(raiz);
+    if (fb < -1 && fatorBalanceamento(raiz->direita) > 0) {
+        raiz->direita = rotacaoDireita(raiz->direita);
+        return rotacaoEsquerda(raiz);
+    }
+
+    return raiz;
+}
+
+// Exibição da árvore in-order
+void exibirInOrder(Node* raiz) {
+    if (raiz != NULL) {
+        exibirInOrder(raiz->esquerda);
+        printf("%d ", raiz->valor);
+        exibirInOrder(raiz->direita);
+    }
+}
+
+// Função principal
+int main() {
+    Node* raiz = NULL;
+
+    raiz = inserir(raiz, 30);
+    raiz = inserir(raiz, 20);
+    raiz = inserir(raiz, 40);
+    raiz = inserir(raiz, 10);
+    raiz = inserir(raiz, 25);
+    raiz = inserir(raiz, 50);
+
+    printf("Árvore AVL em ordem: ");
+    exibirInOrder(raiz);
+    printf("\n");
+
+    printf("Removendo 20...\n");
+    raiz = remover(raiz, 20);
+
+    printf("Após remoção: ");
+    exibirInOrder(raiz);
+    printf("\n");
+
+    int valor = 25;
+    Node* encontrado = buscar(raiz, valor);
+    if (encontrado)
+        printf("Valor %d encontrado.\n", valor);
+    else
+        printf("Valor %d não encontrado.\n", valor);
+
+    return 0;
+}
