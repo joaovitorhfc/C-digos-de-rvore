@@ -1,0 +1,7 @@
+void exibirInOrder(Node* raiz) {
+    if (raiz != NULL) {
+        exibirInOrder(raiz->esquerda);
+        printf("%d(%s) ", raiz->valor, raiz->cor == VERMELHO ? "R" : "B");
+        exibirInOrder(raiz->direita);
+    }
+}
