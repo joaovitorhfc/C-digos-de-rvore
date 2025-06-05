@@ -1,0 +1,18 @@
+// Retorna a altura de um nó
+int altura(Node* n) {
+    if (n == NULL)
+        return 0;
+    return n->altura;
+}
+
+// Retorna o maior entre dois números
+int max(int a, int b) {
+    return (a > b) ? a : b;
+}
+
+// Calcula o fator de balanceamento de um nó
+int fatorBalanceamento(Node* n) {
+    if (n == NULL)
+        return 0;
+    return altura(n->esquerda) - altura(n->direita);
+}
