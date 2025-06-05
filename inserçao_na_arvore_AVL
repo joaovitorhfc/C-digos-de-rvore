@@ -1,0 +1,49 @@
+// Função para inserir um novo valor na árvore AVL
+Node* inserir(Node* no, int valor) {
+    // Caso base: se o nó for nulo, cria um novo
+    if (no == NULL) {
+        Node* novo = (Node*)malloc(sizeof(Node));
+        novo->valor = valor;
+        novo->esquerda = novo->direita = NULL;
+        novo->altura = 1; // novo nó é uma folha
+        return novo;
+    }
+
+    // Inserção recursiva à esquerda ou à direita
+    if (valor < no->valor)
+        no->esquerda = inserir(no->esquerda, valor);
+    else if (valor > no->valor)
+        no->direita = inserir(no->direita, valor);
+    else
+        return no; // valores duplicados não são inseridos
+
+    // Atualiza altura do nó atual após a inserção
+    no->altura = 1 + max(altura(no->esquerda), altura(no->direita));
+
+    // Calcula o fator de balanceamento
+    int fb = fatorBalanceamento(no);
+
+    // Casos de desbalanceamento:
+    // Caso 1: Esquerda-Esquerda
+    if (fb > 1 && valor < no->esquerda->valor)
+        return rotacaoDireita(no);
+
+    // Caso 2: Direita-Direita
+    if (fb < -1 && valor > no->direita->valor)
+        return rotacaoEsquerda(no);
+
+    // Caso 3: Esquerda-Direita
+    if (fb > 1 && valor > no->esquerda->valor) {
+        no->esquerda = rotacaoEsquerda(no->esquerda);
+        return rotacaoDireita(no);
+    }
+
+    // Caso 4: Direita-Esquerda
+    if (fb < -1 && valor < no->direita->valor) {
+        no->direita = rotacaoDireita(no->direita);
+        return rotacaoEsquerda(no);
+    }
+
+    // Retorna o nó (possivelmente reestruturado)
+    return no;
+}
