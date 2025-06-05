@@ -1,0 +1,113 @@
+// Encontra o menor valor em uma subárvore (usado para substituição durante a remoção)
+Node* minimo(Node* no) {
+    while (no->esquerda != NULL)
+        no = no->esquerda;
+    return no;
+}
+
+// Ajusta as cores e estrutura da árvore Red-Black após remoção
+Node* balancearRemocao(Node* raiz, Node* x) {
+    while (x != raiz && (x == NULL || x->cor == PRETO)) {
+        if (x == x->pai->esquerda) {
+            Node* w = x->pai->direita;
+            if (w != NULL && w->cor == VERMELHO) {
+                w->cor = PRETO;
+                x->pai->cor = VERMELHO;
+                raiz = rotacaoEsquerda(raiz, x->pai);
+                w = x->pai->direita;
+            }
+            if ((w->esquerda == NULL || w->esquerda->cor == PRETO) &&
+                (w->direita == NULL || w->direita->cor == PRETO)) {
+                w->cor = VERMELHO;
+                x = x->pai;
+            } else {
+                if (w->direita == NULL || w->direita->cor == PRETO) {
+                    if (w->esquerda != NULL)
+                        w->esquerda->cor = PRETO;
+                    w->cor = VERMELHO;
+                    raiz = rotacaoDireita(raiz, w);
+                    w = x->pai->direita;
+                }
+                w->cor = x->pai->cor;
+                x->pai->cor = PRETO;
+                if (w->direita != NULL)
+                    w->direita->cor = PRETO;
+                raiz = rotacaoEsquerda(raiz, x->pai);
+                x = raiz;
+            }
+        } else {
+            Node* w = x->pai->esquerda;
+            if (w != NULL && w->cor == VERMELHO) {
+                w->cor = PRETO;
+                x->pai->cor = VERMELHO;
+                raiz = rotacaoDireita(raiz, x->pai);
+                w = x->pai->esquerda;
+            }
+            if ((w->direita == NULL || w->direita->cor == PRETO) &&
+                (w->esquerda == NULL || w->esquerda->cor == PRETO)) {
+                w->cor = VERMELHO;
+                x = x->pai;
+            } else {
+                if (w->esquerda == NULL || w->esquerda->cor == PRETO) {
+                    if (w->direita != NULL)
+                        w->direita->cor = PRETO;
+                    w->cor = VERMELHO;
+                    raiz = rotacaoEsquerda(raiz, w);
+                    w = x->pai->esquerda;
+                }
+                w->cor = x->pai->cor;
+                x->pai->cor = PRETO;
+                if (w->esquerda != NULL)
+                    w->esquerda->cor = PRETO;
+                raiz = rotacaoDireita(raiz, x->pai);
+                x = raiz;
+            }
+        }
+    }
+    if (x != NULL)
+        x->cor = PRETO;
+    return raiz;
+}
+
+// Remove um valor da árvore Red-Black (versão com rebalanceamento)
+Node* remover(Node* raiz, int valor) {
+    Node* z = buscar(raiz, valor);
+    if (z == NULL)
+        return raiz;
+
+    Node* y = z;
+    Node* x;
+    Cor corOriginal = y->cor;
+
+    if (z->esquerda == NULL) {
+        x = z->direita;
+        raiz = transplantar(raiz, z, z->direita);
+    } else if (z->direita == NULL) {
+        x = z->esquerda;
+        raiz = transplantar(raiz, z, z->esquerda);
+    } else {
+        y = minimo(z->direita);
+        corOriginal = y->cor;
+        x = y->direita;
+        if (y->pai == z) {
+            if (x != NULL)
+                x->pai = y;
+        } else {
+            raiz = transplantar(raiz, y, y->direita);
+            y->direita = z->direita;
+            if (y->direita != NULL)
+                y->direita->pai = y;
+        }
+        raiz = transplantar(raiz, z, y);
+        y->esquerda = z->esquerda;
+        if (y->esquerda != NULL)
+            y->esquerda->pai = y;
+        y->cor = z->cor;
+    }
+
+    free(z);
+    if (corOriginal == PRETO)
+        raiz = balancearRemocao(raiz, x);
+
+    return raiz;
+}
