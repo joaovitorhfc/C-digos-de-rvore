@@ -1,0 +1,10 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Estrutura de um nó da árvore AVL
+typedef struct Node {
+    int valor;
+    struct Node* esquerda;
+    struct Node* direita;
+    int altura;
+} Node;
