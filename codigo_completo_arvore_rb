@@ -1,0 +1,289 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Definição das cores dos nós
+typedef enum { VERMELHO, PRETO } Cor;
+
+// Estrutura de um nó da árvore Red-Black
+typedef struct Node {
+    int valor;
+    Cor cor;
+    struct Node* esquerda;
+    struct Node* direita;
+    struct Node* pai;
+} Node;
+
+// Cria um novo nó com valor dado, cor vermelha
+Node* criarNo(int valor) {
+    Node* novo = (Node*)malloc(sizeof(Node));
+    novo->valor = valor;
+    novo->cor = VERMELHO;
+    novo->esquerda = novo->direita = novo->pai = NULL;
+    return novo;
+}
+
+// Busca um valor na árvore
+Node* buscar(Node* raiz, int valor) {
+    if (raiz == NULL || raiz->valor == valor)
+        return raiz;
+    if (valor < raiz->valor)
+        return buscar(raiz->esquerda, valor);
+    else
+        return buscar(raiz->direita, valor);
+}
+
+// Rotação simples à esquerda
+Node* rotacaoEsquerda(Node* raiz, Node* x) {
+    Node* y = x->direita;
+    x->direita = y->esquerda;
+    if (y->esquerda != NULL)
+        y->esquerda->pai = x;
+    y->pai = x->pai;
+    if (x->pai == NULL)
+        raiz = y;
+    else if (x == x->pai->esquerda)
+        x->pai->esquerda = y;
+    else
+        x->pai->direita = y;
+    y->esquerda = x;
+    x->pai = y;
+    return raiz;
+}
+
+// Rotação simples à direita
+Node* rotacaoDireita(Node* raiz, Node* x) {
+    Node* y = x->esquerda;
+    x->esquerda = y->direita;
+    if (y->direita != NULL)
+        y->direita->pai = x;
+    y->pai = x->pai;
+    if (x->pai == NULL)
+        raiz = y;
+    else if (x == x->pai->direita)
+        x->pai->direita = y;
+    else
+        x->pai->esquerda = y;
+    y->direita = x;
+    x->pai = y;
+    return raiz;
+}
+
+// Corrige as propriedades após inserção
+Node* balancearInsercao(Node* raiz, Node* z) {
+    while (z->pai && z->pai->cor == VERMELHO) {
+        if (z->pai == z->pai->pai->esquerda) {
+            Node* tio = z->pai->pai->direita;
+            if (tio && tio->cor == VERMELHO) {
+                z->pai->cor = PRETO;
+                tio->cor = PRETO;
+                z->pai->pai->cor = VERMELHO;
+                z = z->pai->pai;
+            } else {
+                if (z == z->pai->direita) {
+                    z = z->pai;
+                    raiz = rotacaoEsquerda(raiz, z);
+                }
+                z->pai->cor = PRETO;
+                z->pai->pai->cor = VERMELHO;
+                raiz = rotacaoDireita(raiz, z->pai->pai);
+            }
+        } else {
+            Node* tio = z->pai->pai->esquerda;
+            if (tio && tio->cor == VERMELHO) {
+                z->pai->cor = PRETO;
+                tio->cor = PRETO;
+                z->pai->pai->cor = VERMELHO;
+                z = z->pai->pai;
+            } else {
+                if (z == z->pai->esquerda) {
+                    z = z->pai;
+                    raiz = rotacaoDireita(raiz, z);
+                }
+                z->pai->cor = PRETO;
+                z->pai->pai->cor = VERMELHO;
+                raiz = rotacaoEsquerda(raiz, z->pai->pai);
+            }
+        }
+    }
+    raiz->cor = PRETO;
+    return raiz;
+}
+
+// Inserção padrão com balanceamento
+Node* inserir(Node* raiz, int valor) {
+    Node* novo = criarNo(valor);
+    Node* y = NULL;
+    Node* x = raiz;
+
+    while (x != NULL) {
+        y = x;
+        if (novo->valor < x->valor)
+            x = x->esquerda;
+        else
+            x = x->direita;
+    }
+
+    novo->pai = y;
+    if (y == NULL)
+        raiz = novo;
+    else if (novo->valor < y->valor)
+        y->esquerda = novo;
+    else
+        y->direita = novo;
+
+    return balancearInsercao(raiz, novo);
+}
+
+// Transplanta um nó por outro (usado na remoção)
+Node* transplantar(Node* raiz, Node* u, Node* v) {
+    if (u->pai == NULL)
+        raiz = v;
+    else if (u == u->pai->esquerda)
+        u->pai->esquerda = v;
+    else
+        u->pai->direita = v;
+    if (v)
+        v->pai = u->pai;
+    return raiz;
+}
+
+// Encontra o menor valor
+Node* minimo(Node* no) {
+    while (no->esquerda)
+        no = no->esquerda;
+    return no;
+}
+
+// Corrige propriedades após remoção
+Node* balancearRemocao(Node* raiz, Node* x, Node* pai) {
+    while (x != raiz && (!x || x->cor == PRETO)) {
+        if (x == pai->esquerda) {
+            Node* w = pai->direita;
+            if (w && w->cor == VERMELHO) {
+                w->cor = PRETO;
+                pai->cor = VERMELHO;
+                raiz = rotacaoEsquerda(raiz, pai);
+                w = pai->direita;
+            }
+            if ((!w->esquerda || w->esquerda->cor == PRETO) &&
+                (!w->direita || w->direita->cor == PRETO)) {
+                w->cor = VERMELHO;
+                x = pai;
+                pai = x->pai;
+            } else {
+                if (!w->direita || w->direita->cor == PRETO) {
+                    if (w->esquerda)
+                        w->esquerda->cor = PRETO;
+                    w->cor = VERMELHO;
+                    raiz = rotacaoDireita(raiz, w);
+                    w = pai->direita;
+                }
+                w->cor = pai->cor;
+                pai->cor = PRETO;
+                if (w->direita)
+                    w->direita->cor = PRETO;
+                raiz = rotacaoEsquerda(raiz, pai);
+                x = raiz;
+            }
+        } else {
+            Node* w = pai->esquerda;
+            if (w && w->cor == VERMELHO) {
+                w->cor = PRETO;
+                pai->cor = VERMELHO;
+                raiz = rotacaoDireita(raiz, pai);
+                w = pai->esquerda;
+            }
+            if ((!w->direita || w->direita->cor == PRETO) &&
+                (!w->esquerda || w->esquerda->cor == PRETO)) {
+                w->cor = VERMELHO;
+                x = pai;
+                pai = x->pai;
+            } else {
+                if (!w->esquerda || w->esquerda->cor == PRETO) {
+                    if (w->direita)
+                        w->direita->cor = PRETO;
+                    w->cor = VERMELHO;
+                    raiz = rotacaoEsquerda(raiz, w);
+                    w = pai->esquerda;
+                }
+                w->cor = pai->cor;
+                pai->cor = PRETO;
+                if (w->esquerda)
+                    w->esquerda->cor = PRETO;
+                raiz = rotacaoDireita(raiz, pai);
+                x = raiz;
+            }
+        }
+    }
+    if (x)
+        x->cor = PRETO;
+    return raiz;
+}
+
+// Remove um nó da árvore
+Node* remover(Node* raiz, int valor) {
+    Node* z = buscar(raiz, valor);
+    if (!z) return raiz;
+
+    Node* y = z;
+    Cor corOriginal = y->cor;
+    Node* x = NULL;
+    Node* xPai = NULL;
+
+    if (!z->esquerda) {
+        x = z->direita;
+        xPai = z->pai;
+        raiz = transplantar(raiz, z, z->direita);
+    } else if (!z->direita) {
+        x = z->esquerda;
+        xPai = z->pai;
+        raiz = transplantar(raiz, z, z->esquerda);
+    } else {
+        y = minimo(z->direita);
+        corOriginal = y->cor;
+        x = y->direita;
+        if (y->pai == z)
+            xPai = y;
+        else {
+            raiz = transplantar(raiz, y, y->direita);
+            y->direita = z->direita;
+            if (y->direita) y->direita->pai = y;
+            xPai = y->pai;
+        }
+        raiz = transplantar(raiz, z, y);
+        y->esquerda = z->esquerda;
+        if (y->esquerda) y->esquerda->pai = y;
+        y->cor = z->cor;
+    }
+
+    free(z);
+    if (corOriginal == PRETO)
+        raiz = balancearRemocao(raiz, x, xPai);
+    return raiz;
+}
+
+// Exibe a árvore in-order com cor
+void exibirInOrder(Node* raiz) {
+    if (raiz) {
+        exibirInOrder(raiz->esquerda);
+        printf("%d(%s) ", raiz->valor, raiz->cor == VERMELHO ? "R" : "B");
+        exibirInOrder(raiz->direita);
+    }
+}
+
+int main() {
+    Node* raiz = NULL;
+    raiz = inserir(raiz, 10);
+    raiz = inserir(raiz, 20);
+    raiz = inserir(raiz, 30);
+    raiz = inserir(raiz, 15);
+    raiz = inserir(raiz, 25);
+
+    printf("\nÁrvore Red-Black: ");
+    exibirInOrder(raiz);
+    printf("\nRemovendo 20...\n");
+    raiz = remover(raiz, 20);
+    printf("\nApós remoção: ");
+    exibirInOrder(raiz);
+    return 0;
+}
