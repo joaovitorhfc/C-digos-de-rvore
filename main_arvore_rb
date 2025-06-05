@@ -1,0 +1,26 @@
+int main() {
+    Node* raiz = NULL;
+
+    raiz = inserir(raiz, 10);
+    raiz = inserir(raiz, 20);
+    raiz = inserir(raiz, 30);
+    raiz = inserir(raiz, 15);
+
+    printf("Árvore Red-Black (in-order): ");
+    exibirInOrder(raiz);
+    printf("\n");
+
+    raiz = remover(raiz, 20);
+
+    printf("Após remover 20: ");
+    exibirInOrder(raiz);
+    printf("\n");
+
+    Node* resultado = buscar(raiz, 15);
+    if (resultado)
+        printf("Valor 15 encontrado.\n");
+    else
+        printf("Valor 15 não encontrado.\n");
+
+    return 0;
+}
