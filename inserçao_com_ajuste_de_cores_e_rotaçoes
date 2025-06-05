@@ -1,0 +1,81 @@
+// Ajusta a árvore Red-Black após inserção de um novo nó vermelho
+Node* balancearInsercao(Node* raiz, Node* z) {
+    // Enquanto o pai do novo nó for vermelho, há violação da propriedade da Red-Black
+    while (z->pai != NULL && z->pai->cor == VERMELHO) {
+        Node* avo = z->pai->pai; // avô do nó z
+
+        // Caso em que o pai está à esquerda do avô
+        if (z->pai == avo->esquerda) {
+            Node* tio = avo->direita; // tio (irmão do pai)
+
+            // Caso 1: tio vermelho → recolorir
+            if (tio != NULL && tio->cor == VERMELHO) {
+                z->pai->cor = PRETO;
+                tio->cor = PRETO;
+                avo->cor = VERMELHO;
+                z = avo; // sobe para o avô e continua
+            } else {
+                // Caso 2: z é filho direito → rotação esquerda no pai
+                if (z == z->pai->direita) {
+                    z = z->pai;
+                    raiz = rotacaoEsquerda(raiz, z);
+                }
+                // Caso 3: z é filho esquerdo → rotação direita no avô
+                z->pai->cor = PRETO;
+                avo->cor = VERMELHO;
+                raiz = rotacaoDireita(raiz, avo);
+            }
+        }
+        // Caso simétrico: pai está à direita do avô
+        else {
+            Node* tio = avo->esquerda;
+
+            // Caso 1: tio vermelho → recolorir
+            if (tio != NULL && tio->cor == VERMELHO) {
+                z->pai->cor = PRETO;
+                tio->cor = PRETO;
+                avo->cor = VERMELHO;
+                z = avo;
+            } else {
+                // Caso 2: z é filho esquerdo → rotação direita no pai
+                if (z == z->pai->esquerda) {
+                    z = z->pai;
+                    raiz = rotacaoDireita(raiz, z);
+                }
+                // Caso 3: z é filho direito → rotação esquerda no avô
+                z->pai->cor = PRETO;
+                avo->cor = VERMELHO;
+                raiz = rotacaoEsquerda(raiz, avo);
+            }
+        }
+    }
+    raiz->cor = PRETO; // a raiz sempre deve ser preta
+    return raiz;
+}
+
+// Inserção padrão em árvore binária seguida de balanceamento Red-Black
+Node* inserir(Node* raiz, int valor) {
+    Node* novo = criarNo(valor); // cria novo nó vermelho
+    Node* y = NULL;
+    Node* x = raiz;
+
+    // Inserção binária comum
+    while (x != NULL) {
+        y = x;
+        if (novo->valor < x->valor)
+            x = x->esquerda;
+        else
+            x = x->direita;
+    }
+
+    novo->pai = y;
+    if (y == NULL)
+        raiz = novo; // árvore estava vazia
+    else if (novo->valor < y->valor)
+        y->esquerda = novo;
+    else
+        y->direita = novo;
+
+    // Ajusta árvore após inserção
+    return balancearInsercao(raiz, novo);
+}
