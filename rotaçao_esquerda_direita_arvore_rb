@@ -1,0 +1,43 @@
+// Rotação simples à esquerda em uma árvore Red-Black
+// Utilizada quando um nó desbalanceado está à direita do seu pai
+Node* rotacaoEsquerda(Node* raiz, Node* x) {
+    Node* y = x->direita;              // y será o novo pai de x
+    x->direita = y->esquerda;          // o filho esquerdo de y passa a ser filho direito de x
+    if (y->esquerda != NULL)
+        y->esquerda->pai = x;          // atualiza pai do filho transferido
+    y->pai = x->pai;                   // y herda o pai de x
+
+    if (x->pai == NULL)
+        raiz = y;                      // se x era raiz, y vira a nova raiz
+    else if (x == x->pai->esquerda)
+        x->pai->esquerda = y;          // atualiza ponteiro do pai para apontar para y
+    else
+        x->pai->direita = y;
+
+    y->esquerda = x;                   // x se torna filho esquerdo de y
+    x->pai = y;                        // atualiza pai de x
+
+    return raiz;
+}
+
+// Rotação simples à direita em uma árvore Red-Black
+// Utilizada quando um nó desbalanceado está à esquerda do seu pai
+Node* rotacaoDireita(Node* raiz, Node* x) {
+    Node* y = x->esquerda;             // y será o novo pai de x
+    x->esquerda = y->direita;          // o filho direito de y passa a ser filho esquerdo de x
+    if (y->direita != NULL)
+        y->direita->pai = x;           // atualiza pai do filho transferido
+    y->pai = x->pai;                   // y herda o pai de x
+
+    if (x->pai == NULL)
+        raiz = y;                      // se x era raiz, y vira a nova raiz
+    else if (x == x->pai->direita)
+        x->pai->direita = y;           // atualiza ponteiro do pai para apontar para y
+    else
+        x->pai->esquerda = y;
+
+    y->direita = x;                    // x se torna filho direito de y
+    x->pai = y;                        // atualiza pai de x
+
+    return raiz;
+}
